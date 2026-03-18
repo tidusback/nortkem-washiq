@@ -1,24 +1,31 @@
 import { useState, useRef, useEffect, createContext, useContext } from "react";
-import { BarChart, Bar, LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 // ─── COLORS ───────────────────────────────────────────────────
 const C = {
-  bg:"#F2F2F7", card:"#FFFFFF",
-  blue:"#1A6FDB", blueLight:"#E8F0FD",
-  navy:"#1C2B4A", navyMid:"#243860",
-  green:"#34C759", greenLight:"#E8F8ED",
-  red:"#FF3B30",   redLight:"#FFF0EF",
-  orange:"#FF9500",orangeLight:"#FFF4E5",
-  purple:"#5856D6",purpleLight:"#EDECFB",
-  teal:"#32ADE6",  tealLight:"#E5F5FC",
-  yellow:"#FFCC00",yellowLight:"#FFFBE5",
-  text:"#1C1C1E",  textSub:"#6E6E73", textMuted:"#AEAEB2",
-  border:"#E5E5EA",borderLight:"#F5F5F7",
-  shadow:"0 2px 14px rgba(0,0,0,0.07)",
-  shadowMd:"0 4px 20px rgba(0,0,0,0.10)",
-  shadowLg:"0 8px 40px rgba(0,0,0,0.13)",
+  bg:"#EEF2FF",
+  card:"rgba(255,255,255,0.60)",
+  cardMid:"rgba(255,255,255,0.45)",
+  cardStrong:"rgba(255,255,255,0.88)",
+  blue:"#1A6FDB",    blueLight:"rgba(26,111,219,0.12)",
+  navy:"#1C2B4A",    navyMid:"#243860",
+  green:"#1DAA55",   greenLight:"rgba(29,170,85,0.12)",
+  red:"#E03131",     redLight:"rgba(224,49,49,0.12)",
+  orange:"#E67700",  orangeLight:"rgba(230,119,0,0.12)",
+  purple:"#7048E8",  purpleLight:"rgba(112,72,232,0.12)",
+  teal:"#0C8599",    tealLight:"rgba(12,133,153,0.12)",
+  yellow:"#B08D00",  yellowLight:"rgba(176,141,0,0.12)",
+  text:"#1C2B4A",
+  textSub:"#4A5568",
+  textMuted:"#8896B5",
+  border:"rgba(0,0,0,0.08)",
+  borderLight:"rgba(0,0,0,0.04)",
+  shadow:"0 4px 24px rgba(0,0,0,0.08),0 1px 4px rgba(0,0,0,0.04)",
+  shadowMd:"0 8px 32px rgba(0,0,0,0.12)",
+  shadowLg:"0 16px 48px rgba(0,0,0,0.16)",
 };
 const F = "-apple-system,'SF Pro Text',sans-serif";
+const BG = "linear-gradient(135deg,#e8eeff 0%,#f0e8ff 35%,#e8f4ff 65%,#eef8ee 100%)";
 
 // ─── VERIFIED DATA ────────────────────────────────────────────
 const CHEMICAL_TYPES = [
@@ -29,7 +36,7 @@ const CHEMICAL_TYPES = [
   { key:"enzyme",    name:"Enzyme Cleaner",          color:C.purple, icon:"🔬", unit:"mL/kg", desc:"Breaks down protein stains (blood, body fluids, food). Use in pre-soak or Break step.",                     defaultDose:3,  minDose:1,   maxDose:6  },
   { key:"sour",      name:"Neutralizer/Sour",        color:C.green,  icon:"⚖️", unit:"mL/kg", desc:"Reduces final rinse pH to 5–6.5 (skin-safe). Removes alkali residues. Prevents yellowing and skin irritation.", defaultDose:2, minDose:0.5, maxDose:5  },
   { key:"softener",  name:"Fabric Softener",         color:C.red,    icon:"🌸", unit:"mL/kg", desc:"Adds softness and reduces static cling. Use sparingly on towels — excess reduces absorbency.",              defaultDose:2,  minDose:0.5, maxDose:5  },
-  { key:"starch",    name:"Starch/Sizing",           color:C.navy,   icon:"📐", unit:"mL/kg", desc:"Adds body and crispness to F&B linens and uniforms. Applied in final rinse. Improves soil resistance.",     defaultDose:3,  minDose:1,   maxDose:8  },
+  { key:"starch",    name:"Starch/Sizing",           color:"#5C6BC0",   icon:"📐", unit:"mL/kg", desc:"Adds body and crispness to F&B linens and uniforms. Applied in final rinse. Improves soil resistance.",     defaultDose:3,  minDose:1,   maxDose:8  },
   { key:"emulsifier",name:"Emulsifier/Degreaser",   color:"#AF52DE", icon:"🛢️", unit:"mL/kg", desc:"For heavily greased items (kitchen, spa, industrial). Solubilizes fats and oils before wash cycle.",        defaultDose:3,  minDose:1,   maxDose:7  },
   { key:"cleaning",  name:"Cleaning Chemical",       color:C.teal,   icon:"🧹", unit:"dilution", desc:"General-purpose cleaning product: Tile & bowl cleaner, glass cleaner, degreaser, dishwashing liquid, hand soap.",  defaultDose:0, minDose:0, maxDose:0  },
 ];
@@ -114,7 +121,7 @@ const DEFAULT_CHEMICALS = [
 
   { id:8, key:"detergent",  name:"Nortkem Powdered Soap Ultra",
     type:"detergent",  doseML:25, costPerL:72.5, marketCostPerL:155,
-    stock:25,  color:C.navyMid,active:false,
+    stock:25,  color:"#5C6BC0",active:false,
     note:"1x Bag 25kg = ₱1,812.50 (₱72.50/kg)" },
 
   { id:9, key:"detergent",  name:"Nortkem Powdered Soap Eco",
@@ -179,14 +186,21 @@ const IsMobile = createContext(true);
 const useIsMobile = () => useContext(IsMobile);
 
 // ─── SHARED UI ────────────────────────────────────────────────
+const glassBase = {
+  background:"rgba(255,255,255,0.60)",
+  backdropFilter:"blur(24px)",
+  WebkitBackdropFilter:"blur(24px)",
+  border:"1px solid rgba(255,255,255,0.80)",
+  boxShadow:"0 4px 24px rgba(0,0,0,0.08),inset 0 1px 0 rgba(255,255,255,0.90)",
+};
 const Card = ({children, style={}, onClick}) => (
-  <div onClick={onClick} style={{background:C.card,borderRadius:18,boxShadow:C.shadow,padding:20,border:`1px solid ${C.border}`,...style,cursor:onClick?"pointer":"default"}}>{children}</div>
+  <div onClick={onClick} style={{...glassBase,borderRadius:18,boxShadow:C.shadow,padding:20,...style,cursor:onClick?"pointer":"default"}}>{children}</div>
 );
 const Label = ({children,style={}}) => (
   <div style={{fontSize:11,fontWeight:600,color:C.textMuted,letterSpacing:"0.07em",textTransform:"uppercase",marginBottom:7,fontFamily:F,...style}}>{children}</div>
 );
 const Badge = ({label,color=C.blue,size=11}) => (
-  <span style={{background:`${color}18`,color,fontSize:size,fontWeight:600,padding:"3px 10px",borderRadius:20,fontFamily:F,whiteSpace:"nowrap"}}>{label}</span>
+  <span style={{background:`${color}28`,color,fontSize:size,fontWeight:700,padding:"3px 10px",borderRadius:20,fontFamily:F,whiteSpace:"nowrap",border:`1px solid ${color}40`}}>{label}</span>
 );
 const SectionHead = ({title,subtitle,action}) => (
   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20}}>
@@ -198,16 +212,16 @@ const SectionHead = ({title,subtitle,action}) => (
   </div>
 );
 const Seg = ({options,value,onChange}) => (
-  <div style={{display:"flex",background:C.bg,borderRadius:11,padding:3,border:`1px solid ${C.border}`}}>
+  <div style={{display:"flex",background:"rgba(0,0,0,0.04)",borderRadius:12,padding:4,border:`1px solid ${C.border}`}}>
     {options.map(o=>(
-      <button key={o} onClick={()=>onChange(o)} style={{flex:1,padding:"8px 4px",borderRadius:9,border:"none",cursor:"pointer",background:value===o?C.card:"transparent",color:value===o?C.blue:C.textMuted,fontWeight:value===o?700:400,fontSize:12,fontFamily:F,boxShadow:value===o?C.shadow:"none",transition:"all 0.2s"}}>{o}</button>
+      <button key={o} onClick={()=>onChange(o)} style={{flex:1,padding:"8px 4px",borderRadius:9,border:"none",cursor:"pointer",background:value===o?C.cardStrong:"transparent",color:value===o?C.blue:C.textMuted,fontWeight:value===o?700:400,fontSize:12,fontFamily:F,boxShadow:value===o?C.shadow:"none",transition:"all 0.2s"}}>{o}</button>
     ))}
   </div>
 );
 const Input = ({label,value,onChange,type="number",suffix,prefix,min,max,step=1,placeholder,small,note}) => (
   <div style={{marginBottom:small?10:14}}>
     {label&&<Label>{label}</Label>}
-    <div style={{display:"flex",alignItems:"center",background:C.bg,borderRadius:12,border:`1.5px solid ${C.border}`,overflow:"hidden"}}>
+    <div style={{display:"flex",alignItems:"center",background:"rgba(255,255,255,0.70)",borderRadius:12,border:`1.5px solid rgba(0,0,0,0.10)`,overflow:"hidden",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)"}}>
       {prefix&&<span style={{padding:"0 10px",color:C.blue,fontSize:14,fontWeight:700,fontFamily:F}}>{prefix}</span>}
       <input type={type} value={value} placeholder={placeholder} min={min} max={max} step={step}
         onChange={e=>onChange(type==="number"?Number(e.target.value):e.target.value)}
@@ -220,7 +234,7 @@ const Input = ({label,value,onChange,type="number",suffix,prefix,min,max,step=1,
 const StatCard = ({label,value,color=C.blue,icon,sub,style={}}) => (
   <Card style={{padding:"15px 12px",textAlign:"center",...style}}>
     {icon&&<div style={{fontSize:20,marginBottom:5}}>{icon}</div>}
-    <div style={{color,fontSize:20,fontWeight:800,fontFamily:F,lineHeight:1.1}}>{value}</div>
+    <div style={{color,fontSize:20,fontWeight:800,fontFamily:F,lineHeight:1.1,textShadow:`0 0 20px ${color}60`}}>{value}</div>
     <div style={{color:C.textMuted,fontSize:10,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em",marginTop:3,fontFamily:F}}>{label}</div>
     {sub&&<div style={{color:C.textSub,fontSize:11,marginTop:2,fontFamily:F}}>{sub}</div>}
   </Card>
@@ -231,27 +245,27 @@ const BarMeter = ({label,value,max=100,color,suffix="%",note}) => (
       <span style={{color:C.textSub,fontSize:13,fontFamily:F}}>{label}</span>
       <span style={{color,fontSize:13,fontWeight:700,fontFamily:F}}>{value}{suffix}</span>
     </div>
-    <div style={{background:C.bg,borderRadius:6,height:7,overflow:"hidden"}}>
-      <div style={{width:`${Math.min((value/max)*100,100)}%`,height:"100%",background:`linear-gradient(90deg,${color},${color}cc)`,borderRadius:6,transition:"width 0.6s ease"}}/>
+    <div style={{background:"rgba(0,0,0,0.07)",borderRadius:6,height:7,overflow:"hidden"}}>
+      <div style={{width:`${Math.min((value/max)*100,100)}%`,height:"100%",background:`linear-gradient(90deg,${color},${color}cc)`,borderRadius:6,transition:"width 0.6s ease",boxShadow:`0 0 8px ${color}80`}}/>
     </div>
     {note&&<div style={{color:C.textMuted,fontSize:10,marginTop:3,fontFamily:F}}>{note}</div>}
   </div>
 );
 const Tip = ({text,color=C.blue}) => (
-  <div style={{background:`${color}10`,border:`1px solid ${color}25`,borderRadius:12,padding:"11px 14px",color:C.textSub,fontSize:12,fontFamily:F,lineHeight:1.6,marginTop:10}}>
+  <div style={{background:`${color}12`,border:`1px solid ${color}30`,borderRadius:12,padding:"11px 14px",color:C.textSub,fontSize:12,fontFamily:F,lineHeight:1.6,marginTop:10,backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)"}}>
     <span style={{color,fontWeight:700}}>💡 </span>{text}
   </div>
 );
 const TTip = ({active,payload,label}) => {
   if(!active||!payload?.length) return null;
-  return <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"10px 14px",boxShadow:C.shadowMd}}>
+  return <div style={{background:"rgba(255,255,255,0.94)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",border:`1px solid ${C.border}`,borderRadius:12,padding:"10px 14px",boxShadow:C.shadowMd}}>
     <div style={{color:C.text,fontSize:12,fontWeight:700,marginBottom:4,fontFamily:F}}>{label}</div>
     {payload.map((p,i)=><div key={i} style={{color:p.color,fontSize:12,fontFamily:F}}>{p.name}: {p.value}</div>)}
   </div>;
 };
 const Btn = ({children,onClick,color=C.blue,ghost,full,small,disabled}) => (
   <button onClick={onClick} disabled={disabled}
-    style={{width:full?"100%":"auto",padding:small?"9px 16px":"13px 20px",borderRadius:14,border:ghost?`1.5px solid ${color}`:"none",background:ghost?"transparent":disabled?C.textMuted:color,color:ghost?color:"#fff",fontSize:small?13:15,fontWeight:700,cursor:disabled?"default":"pointer",fontFamily:F,transition:"all 0.2s"}}>
+    style={{width:full?"100%":"auto",padding:small?"9px 16px":"13px 20px",borderRadius:14,border:ghost?`1.5px solid ${color}60`:"none",background:ghost?"rgba(255,255,255,0.60)":disabled?"rgba(0,0,0,0.08)":`linear-gradient(135deg,${color},${color}cc)`,color:ghost?color:disabled?C.textMuted:"#fff",fontSize:small?13:15,fontWeight:700,cursor:disabled?"default":"pointer",fontFamily:F,transition:"all 0.2s",boxShadow:ghost?"none":disabled?"none":`0 4px 16px ${color}40`}}>
     {children}
   </button>
 );
@@ -263,7 +277,7 @@ function Logo({size=40}) {
     {Array.from({length:n}).map((_,i)=>{
       const a=(i/n)*2*Math.PI-Math.PI/2, na=a+(2*Math.PI)/n, ma=(a+na)/2;
       return <path key={i} d={`M${cx},${cy} Q${cx+r*0.32*Math.cos(a)},${cy+r*0.32*Math.sin(a)} ${cx+r*Math.cos(ma-0.3)},${cy+r*Math.sin(ma-0.3)} Q${cx+r*0.1*Math.cos(ma)},${cy+r*0.1*Math.sin(ma)} ${cx+r*Math.cos(ma+0.3)},${cy+r*Math.sin(ma+0.3)} Z`}
-        fill={i===0?"#1A6FDB":"#2C2C2C"}/>;
+        fill={i===0?"#1A6FDB":i===1?"#1DAA55":i===2?"#E67700":i===3?"#7048E8":"#0C8599"}/>;
     })}
     <circle cx={cx} cy={cy} r={s*0.07} fill="#fff"/>
   </svg>;
@@ -293,22 +307,25 @@ function RegisterScreen({onBack,onRegister}) {
     }
   };
   return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#deeafc 0%,#f2f2f7 55%,#eff4ff 100%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px 20px"}}>
-      <div style={{textAlign:"center",marginBottom:28}}>
-        <div style={{width:72,height:72,borderRadius:20,background:C.card,boxShadow:C.shadowLg,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}><Logo size={52}/></div>
+    <div style={{minHeight:"100vh",background:BG,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px 20px",position:"relative",overflow:"hidden"}}>
+      {/* Decorative orbs */}
+      <div style={{position:"absolute",top:"-20%",left:"-10%",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(26,111,219,0.10) 0%,transparent 70%)",pointerEvents:"none"}}/>
+      <div style={{position:"absolute",bottom:"-15%",right:"-10%",width:400,height:400,borderRadius:"50%",background:"radial-gradient(circle,rgba(112,72,232,0.08) 0%,transparent 70%)",pointerEvents:"none"}}/>
+      <div style={{textAlign:"center",marginBottom:28,position:"relative"}}>
+        <div style={{width:72,height:72,borderRadius:22,...glassBase,boxShadow:C.shadowLg,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 14px"}}><Logo size={52}/></div>
         <h1 style={{fontFamily:F,fontSize:22,fontWeight:800,color:C.text,margin:"0 0 3px",letterSpacing:"-0.03em"}}>NORTKEM WASH IQ</h1>
         <p style={{color:C.textSub,fontSize:13,margin:0,fontFamily:F}}>Create Your Account</p>
       </div>
-      <div style={{width:"100%",maxWidth:400}}>
+      <div style={{width:"100%",maxWidth:400,position:"relative"}}>
         <div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:20}}>
           {[1,2,3].map(s=>(
             <div key={s} style={{display:"flex",alignItems:"center",gap:8}}>
-              <div style={{width:28,height:28,borderRadius:"50%",background:step>=s?C.blue:C.bg,border:`2px solid ${step>=s?C.blue:C.border}`,display:"flex",alignItems:"center",justifyContent:"center",color:step>=s?"#fff":C.textMuted,fontSize:12,fontWeight:700,fontFamily:F}}>{step>s?"✓":s}</div>
+              <div style={{width:28,height:28,borderRadius:"50%",background:step>=s?C.blue:"rgba(255,255,255,0.08)",border:`2px solid ${step>=s?C.blue:C.border}`,display:"flex",alignItems:"center",justifyContent:"center",color:step>=s?"#fff":C.textMuted,fontSize:12,fontWeight:700,fontFamily:F}}>{step>s?"✓":s}</div>
               {s<3&&<div style={{width:30,height:2,background:step>s?C.blue:C.border}}/>}
             </div>
           ))}
         </div>
-        <Card style={{padding:26,boxShadow:C.shadowLg}}>
+        <Card style={{padding:26,boxShadow:C.shadowLg,background:C.cardMid}}>
           <div style={{color:C.text,fontWeight:700,fontSize:16,marginBottom:18,fontFamily:F}}>
             {step===1?"Personal Details":step===2?"Set Password":"Property Info"}
           </div>
@@ -318,20 +335,20 @@ function RegisterScreen({onBack,onRegister}) {
             <div style={{marginBottom:14}}>
               <Label>Your Role</Label>
               <div style={{display:"flex",flexWrap:"wrap",gap:7}}>
-                {ROLES.map(r=><button key={r} onClick={()=>upd("role")(r)} style={{padding:"7px 12px",borderRadius:10,border:`1.5px solid ${form.role===r?C.blue:C.border}`,background:form.role===r?C.blueLight:C.bg,color:form.role===r?C.blue:C.textSub,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:F}}>{r}</button>)}
+                {ROLES.map(r=><button key={r} onClick={()=>upd("role")(r)} style={{padding:"7px 12px",borderRadius:10,border:`1.5px solid ${form.role===r?C.blue:C.border}`,background:form.role===r?C.blueLight:"rgba(255,255,255,0.05)",color:form.role===r?C.blue:C.textSub,fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:F}}>{r}</button>)}
               </div>
             </div>
           </>}
           {step===2&&<>
             <div style={{marginBottom:14}}>
               <Label>Password</Label>
-              <div style={{background:C.bg,borderRadius:12,border:`1.5px solid ${C.border}`,overflow:"hidden"}}>
+              <div style={{background:"rgba(255,255,255,0.70)",borderRadius:12,border:`1.5px solid rgba(0,0,0,0.10)`,overflow:"hidden"}}>
                 <input type="password" value={form.password} placeholder="Minimum 6 characters" onChange={e=>upd("password")(e.target.value)} style={{width:"100%",background:"transparent",border:"none",outline:"none",color:C.text,fontSize:15,padding:"13px 14px",fontFamily:F}}/>
               </div>
             </div>
             <div style={{marginBottom:14}}>
               <Label>Confirm Password</Label>
-              <div style={{background:C.bg,borderRadius:12,border:`1.5px solid ${C.border}`,overflow:"hidden"}}>
+              <div style={{background:"rgba(255,255,255,0.70)",borderRadius:12,border:`1.5px solid rgba(0,0,0,0.10)`,overflow:"hidden"}}>
                 <input type="password" value={form.confirm} placeholder="Re-enter password" onChange={e=>upd("confirm")(e.target.value)} style={{width:"100%",background:"transparent",border:"none",outline:"none",color:C.text,fontSize:15,padding:"13px 14px",fontFamily:F}}/>
               </div>
             </div>
@@ -340,7 +357,7 @@ function RegisterScreen({onBack,onRegister}) {
             <Input label="Property / Hotel Name" value={form.property} onChange={upd("property")} type="text" placeholder="Grand Hotel Angeles"/>
             <Input label="Number of Rooms" value={form.rooms} onChange={upd("rooms")} min={10} max={5000} suffix="rooms"/>
           </>}
-          {err&&<div style={{background:C.redLight,border:`1px solid ${C.red}28`,borderRadius:10,padding:"9px 14px",color:C.red,fontSize:13,fontFamily:F,marginBottom:14}}>{err}</div>}
+          {err&&<div style={{background:C.redLight,border:`1px solid ${C.red}40`,borderRadius:10,padding:"9px 14px",color:C.red,fontSize:13,fontFamily:F,marginBottom:14}}>{err}</div>}
           <div style={{display:"flex",gap:10,marginTop:4}}>
             {step>1&&<Btn onClick={()=>{setErr("");setStep(s=>s-1);}} ghost color={C.blue}>Back</Btn>}
             <Btn onClick={next} full color={C.blue}>{step===3?"Create Account →":step===2?"Continue →":"Next →"}</Btn>
@@ -372,30 +389,34 @@ function LoginScreen({onLogin,onRegister,users}) {
     },800);
   };
   return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#deeafc 0%,#f2f2f7 55%,#eff4ff 100%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px 20px"}}>
-      <div style={{textAlign:"center",marginBottom:32}}>
-        <div style={{width:80,height:80,borderRadius:22,background:C.card,boxShadow:C.shadowLg,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}><Logo size={58}/></div>
-        <h1 style={{fontFamily:F,fontSize:25,fontWeight:800,color:C.text,margin:"0 0 4px",letterSpacing:"-0.03em"}}>NORTKEM WASH IQ</h1>
+    <div style={{minHeight:"100vh",background:BG,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px 20px",position:"relative",overflow:"hidden"}}>
+      {/* Decorative orbs */}
+      <div style={{position:"absolute",top:"-20%",right:"-5%",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(26,111,219,0.10) 0%,transparent 70%)",pointerEvents:"none"}}/>
+      <div style={{position:"absolute",bottom:"-15%",left:"-10%",width:450,height:450,borderRadius:"50%",background:"radial-gradient(circle,rgba(12,133,153,0.08) 0%,transparent 70%)",pointerEvents:"none"}}/>
+      <div style={{position:"absolute",top:"40%",left:"30%",width:300,height:300,borderRadius:"50%",background:"radial-gradient(circle,rgba(112,72,232,0.06) 0%,transparent 70%)",pointerEvents:"none"}}/>
+      <div style={{textAlign:"center",marginBottom:32,position:"relative"}}>
+        <div style={{width:80,height:80,borderRadius:24,...glassBase,boxShadow:C.shadowLg,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}><Logo size={58}/></div>
+        <h1 style={{fontFamily:F,fontSize:26,fontWeight:800,color:C.text,margin:"0 0 4px",letterSpacing:"-0.03em"}}>NORTKEM WASH IQ</h1>
         <p style={{color:C.textSub,fontSize:14,margin:0,fontFamily:F}}>Laundry Intelligence Platform</p>
       </div>
-      <div style={{width:"100%",maxWidth:390}}>
-        <Card style={{padding:26,boxShadow:C.shadowLg}}>
+      <div style={{width:"100%",maxWidth:390,position:"relative"}}>
+        <Card style={{padding:28,boxShadow:C.shadowLg,background:C.cardMid}}>
           <h3 style={{color:C.text,fontWeight:700,fontSize:19,margin:"0 0 20px",fontFamily:F}}>Welcome Back</h3>
           <Input label="Email" value={email} onChange={setEmail} type="email" placeholder="you@hotel.ph"/>
           <div style={{marginBottom:14}}>
             <Label>Password</Label>
-            <div style={{display:"flex",alignItems:"center",background:C.bg,borderRadius:12,border:`1.5px solid ${C.border}`}}>
+            <div style={{display:"flex",alignItems:"center",background:"rgba(255,255,255,0.70)",borderRadius:12,border:`1.5px solid rgba(0,0,0,0.10)`}}>
               <input type={show?"text":"password"} value={pass} placeholder="Enter password" onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handle()} style={{flex:1,background:"transparent",border:"none",outline:"none",color:C.text,fontSize:15,padding:"13px 14px",fontFamily:F}}/>
               <button onClick={()=>setShow(v=>!v)} style={{background:"none",border:"none",cursor:"pointer",padding:"0 14px",color:C.textMuted,fontSize:13,fontFamily:F}}>{show?"Hide":"Show"}</button>
             </div>
           </div>
-          {err&&<div style={{background:C.redLight,border:`1px solid ${C.red}28`,borderRadius:10,padding:"9px 14px",color:C.red,fontSize:13,fontFamily:F,marginBottom:14}}>{err}</div>}
+          {err&&<div style={{background:C.redLight,border:`1px solid ${C.red}40`,borderRadius:10,padding:"9px 14px",color:C.red,fontSize:13,fontFamily:F,marginBottom:14}}>{err}</div>}
           <Btn onClick={handle} full disabled={loading}>{loading?"Signing in…":"Sign In →"}</Btn>
           <button onClick={onRegister} style={{width:"100%",background:"none",border:"none",color:C.blue,cursor:"pointer",fontSize:14,fontWeight:600,padding:"14px 0 0",fontFamily:F}}>New user? Create an Account →</button>
-          <div style={{margin:"16px 0 0",background:C.bg,borderRadius:12,padding:"12px 14px"}}>
+          <div style={{margin:"16px 0 0",background:"rgba(0,0,0,0.03)",borderRadius:12,padding:"12px 14px",border:`1px solid rgba(0,0,0,0.07)`}}>
             <Label style={{margin:"0 0 7px"}}>Demo Accounts (password: nortkem123)</Label>
             {DEMO_USERS.map(u=>(
-              <div key={u.id} onClick={()=>{setEmail(u.email);setPass("nortkem123");}} style={{cursor:"pointer",padding:"6px 0",borderBottom:`1px solid ${C.border}`}}>
+              <div key={u.id} onClick={()=>{setEmail(u.email);setPass("nortkem123");}} style={{cursor:"pointer",padding:"6px 0",borderBottom:`1px solid ${C.borderLight}`}}>
                 <div style={{color:C.blue,fontSize:13,fontWeight:600,fontFamily:F}}>{u.email}</div>
                 <div style={{color:C.textMuted,fontSize:11,fontFamily:F}}>{u.property}</div>
               </div>
@@ -1153,7 +1174,7 @@ const WASH_ENGINE = {
     const chem   = detS * 0.50 + alkS * 0.24 + bleachS * 0.16 + enzS * 0.10;
 
     // ── TEMPERATURE (30%) ────────────────────────────────────
-    const tRatio  = Math.min(tempC / lt.tempC, 1.15);
+    const tRatio  = Math.min(lt.tempC > 0 ? tempC / lt.tempC : 1, 1.15);
     const tScore  = Math.min(98, tRatio * 80 + (tempC >= 60 ? 14 : tempC >= 50 ? 8 : tempC >= 40 ? 4 : 0));
     const temp    = tScore;
 
@@ -1179,11 +1200,11 @@ const WASH_ENGINE = {
     const detBoostH    = det >= 6 ? 5 : det >= 3 ? 3 : 0;
     const timeBoostH   = timeMin >= lt.cycleMin * 0.85 ? 4 : timeMin >= lt.cycleMin * 0.6 ? 2 : 0;
     let hygiene = Math.round(Math.min(98, thermalKill + bleachBoost + detBoostH + timeBoostH));
-    const isHosp = lt.id === 4 || ["Hospital","Medical","Clinic"].some(k => lt.name.includes(k));
+    const isHosp = ["Hospital","Medical","Clinic"].some(k => lt.name.includes(k));
     if (isHosp && tempC < 60) hygiene = Math.min(hygiene, 28);
 
     // ── COLOR / WHITENESS ────────────────────────────────────
-    const isColored = lt.id === 3 || lt.name.toLowerCase().includes("color") || lt.name.toLowerCase().includes("colour");
+    const isColored = lt.name.toLowerCase().includes("color") || lt.name.toLowerCase().includes("colour");
     const isSilk    = lt.fabric && lt.fabric.toLowerCase().includes("silk");
     let colorScore;
     if (isColored) {
@@ -1227,7 +1248,7 @@ const WASH_ENGINE = {
 
     // ── REWASH RISK ──────────────────────────────────────────
     const deficit = Math.max(0, 80 - clean);
-    const rewash  = Math.round(Math.min(25, Math.max(lt.rewashTarget, lt.rewashTarget + deficit * 0.22)));
+    const rewash  = Math.round(Math.min(25, lt.rewashTarget + deficit * 0.22));
 
     // ── OVERALL ──────────────────────────────────────────────
     const overall = Math.min(99, Math.max(5, Math.round(
@@ -1356,8 +1377,8 @@ function FormulaSimulator({ linenTypes, chemicals, settings }) {
 
   const alerts = [];
   const det        = editDoses.detergent || 0;
-  const isHosp2    = lt.id===4 || ["Hospital","Medical","Clinic"].some(k => lt.name.includes(k));
-  const isColored2 = lt.id===3 || lt.name.toLowerCase().includes("color");
+  const isHosp2    = ["Hospital","Medical","Clinic"].some(k => lt.name.includes(k));
+  const isColored2 = lt.name.toLowerCase().includes("color") || lt.name.toLowerCase().includes("colour");
   const isSilk2    = lt.fabric && lt.fabric.toLowerCase().includes("silk");
   if (det === 0)
     alerts.push({sev:"fail", msg:`No detergent → Stain Removal is ${sim.clean}% (water only). No emulsification possible. Sinner's Circle: Chemistry = 35% weight.`});
@@ -1380,8 +1401,11 @@ function FormulaSimulator({ linenTypes, chemicals, settings }) {
   if (sim.overall >= 90 && alerts.length === 0)
     alerts.push({sev:"ok", msg:"All Sinner's Circle factors balanced. Formula is optimized for maximum efficacy with minimum fabric stress."});
 
-  const setDose = (key, delta) =>
-    setEditDoses(d => ({ ...d, [key]: Math.max(0, Math.min(20, +((d[key]||0) + delta).toFixed(1))) }));
+  const setDose = (key, delta) => {
+    const ct = CHEMICAL_TYPES.find(t => t.key === key);
+    const maxD = ct?.maxDose ?? 20;
+    setEditDoses(d => ({ ...d, [key]: Math.max(0, Math.min(maxD, +((d[key]||0) + delta).toFixed(1))) }));
+  };
 
   return (
     <div>
@@ -2055,24 +2079,28 @@ function Savings({user, settings, chemicals, onViewReport}) {
 
   const months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const chartData=months.map(m=>({m,cur:Math.round(curD*30),nk:Math.round(ourD*30)}));
+  const totalSaves=annualSave+waterSave+energySave+linenSave||1;
   const saves=[
-    {l:"Chemicals", amt:annualSave, pct:pctSave, c:C.blue},
-    {l:"Water",     amt:waterSave,  pct:18,      c:C.teal},
-    {l:"Energy",    amt:energySave, pct:18,      c:C.orange},
-    {l:"Linen Life",amt:linenSave,  pct:25,      c:C.green},
+    {l:"Chemicals", amt:annualSave, pct:pctSave,                               c:C.blue},
+    {l:"Water",     amt:waterSave,  pct:Math.round(waterSave/totalSaves*100),   c:C.teal},
+    {l:"Energy",    amt:energySave, pct:Math.round(energySave/totalSaves*100),  c:C.orange},
+    {l:"Linen Life",amt:linenSave,  pct:Math.round(linenSave/totalSaves*100),   c:C.green},
   ];
   const maxBar=Math.max(...saves.map(s=>s.amt),1);
   const maxMo =Math.max(...chartData.map(d=>Math.max(d.cur,d.nk)),1);
 
   // ── PRINT PDF ─────────────────────────────────────────────────
+  const escHtml = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
   const printPDF = () => {
-    const appName = settings?.appName || 'NORTKEM WASH IQ';
-    const seed = user.property?.charCodeAt(0)??65;
+    const appName = escHtml(settings?.appName || 'NORTKEM WASH IQ');
+    const eHotel    = escHtml(hotel);
+    const eUserName = escHtml(user.name);
+    const eUserRole = escHtml(user.role);
     const chemRows = (chemicals||[]).map(ch => {
       const mP = ch.marketCostPerL ?? ch.costPerL;
       const pct = mP>0 ? Math.round((1-ch.costPerL/mP)*100) : 0;
       return `<tr>
-        <td>${ch.name.replace('Nortkem ','')}</td>
+        <td>${escHtml(ch.name.replace('Nortkem ',''))}</td>
         <td style="text-align:center">${ch.doseML} mL/kg</td>
         <td style="text-align:right;color:#FF3B30">&#8369;${mP}/L</td>
         <td style="text-align:right;color:#1A6FDB;font-weight:700">&#8369;${ch.costPerL}/L</td>
@@ -2084,14 +2112,13 @@ function Savings({user, settings, chemicals, onViewReport}) {
     const maxBarAmt = Math.max(...saves.map(s=>s.amt),1);
     const saveBars = saves.map(s=>{
       const w=Math.round((s.amt/maxBarAmt)*100);
-      const hex=s.c;
-      return `<div style="margin-bottom:16px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-          <span style="font-weight:700">${s.l}</span>
-          <span style="color:${hex};font-weight:800">&#8369;${(s.amt/1000).toFixed(1)}K/yr &nbsp;&#8209;${s.pct}%</span>
+      return `<div class="bar-row">
+        <div class="bar-labels">
+          <span class="name">${s.l}</span>
+          <span class="val" style="color:${s.c}">&#8369;${(s.amt/1000).toFixed(1)}K/yr &nbsp;&mdash;&nbsp;${s.pct}%</span>
         </div>
-        <div style="background:#E5E5EA;border-radius:6px;height:16px;overflow:hidden">
-          <div style="width:${w}%;height:16px;background:${hex};border-radius:6px"></div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${w}%;background:${s.c}"></div>
         </div>
       </div>`;
     }).join('');
@@ -2105,92 +2132,135 @@ function Savings({user, settings, chemicals, onViewReport}) {
     const html = `<!DOCTYPE html><html><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${appName} – Savings Report – ${hotel}</title>
+<title>${appName} – Savings Report – ${eHotel}</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#fff;color:#111;font-size:13px;line-height:1.5}
-.cover{background:linear-gradient(135deg,#1C2B4A,#1A6FDB);color:#fff;padding:40px 32px 36px;page-break-after:always}
-.cover h1{font-size:30px;font-weight:900;margin:12px 0 6px;letter-spacing:-0.02em}
-.cover .sub{font-size:13px;opacity:0.65;margin-bottom:20px}
-.prop{background:rgba(255,255,255,0.12);border-radius:10px;padding:14px 18px}
-.prop h2{font-size:17px;font-weight:800;margin-bottom:4px}
-.hero{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0 0}
-.ha{background:#1A6FDB;border-radius:12px;padding:18px;text-align:center;color:#fff}
-.hb{background:#34C759;border-radius:12px;padding:18px;text-align:center;color:#fff}
-.big{font-size:36px;font-weight:900;letter-spacing:-0.03em}
-.sm{font-size:11px;opacity:0.75;margin-top:3px}
-.kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px}
-.kpi{background:rgba(255,255,255,0.12);border-radius:10px;padding:12px;text-align:center}
-.kpi .v{font-size:20px;font-weight:900}
-.kpi .l{font-size:10px;opacity:0.6;margin-top:2px;text-transform:uppercase;letter-spacing:0.05em}
-.section{padding:24px 32px;page-break-inside:avoid}
-.section h2{font-size:18px;font-weight:900;color:#1C2B4A;margin-bottom:4px;border-bottom:2px solid #1A6FDB;padding-bottom:8px}
-.section .desc{font-size:11px;color:#8E8E93;margin:6px 0 16px}
-.sboxes{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
-.sbox{background:#F2F2F7;border-radius:10px;padding:12px;text-align:center}
-.sbox .v{font-size:15px;font-weight:900}
-.sbox .l{font-size:9px;color:#8E8E93;text-transform:uppercase;margin-top:3px;letter-spacing:0.05em}
-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px}
-th{background:#1C2B4A;color:#fff;padding:8px 10px;font-size:10px;font-weight:700;text-align:left;text-transform:uppercase}
-td{padding:7px 10px;border-bottom:1px solid #F0F0F0}
-tr:nth-child(even) td{background:#F9F9FB}
-.total-row td{background:#EBF5FF!important;font-weight:900;border-top:2px solid #1A6FDB}
-.note{font-size:10px;color:#8E8E93;margin-top:6px}
-.total-box{background:#1C2B4A;border-radius:12px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;margin-top:10px;color:#fff}
-.rec{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start}
-.num{width:26px;height:26px;border-radius:50%;background:#1A6FDB;color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
-.rec h4{font-size:13px;font-weight:800;color:#1C2B4A;margin-bottom:2px}
-.rec p{font-size:12px;color:#636366}
-.footer{background:#1C2B4A;color:rgba(255,255,255,0.5);text-align:center;padding:14px;font-size:10px;margin-top:0}
+@page{margin:18mm 16mm}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:#fff;color:#1C2B4A;font-size:12px;line-height:1.55}
+/* ── Cover ── */
+.cover{background:linear-gradient(135deg,#1C2B4A 0%,#1A6FDB 100%);color:#fff;padding:44px 40px 38px;margin-bottom:0}
+.cover-tag{font-size:9px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;opacity:0.55;margin-bottom:10px}
+.cover h1{font-size:28px;font-weight:900;margin:0 0 4px;letter-spacing:-0.02em;line-height:1.2}
+.cover .sub{font-size:13px;opacity:0.60;margin-bottom:24px}
+.prop-box{background:rgba(255,255,255,0.13);border:1px solid rgba(255,255,255,0.22);border-radius:12px;padding:16px 20px}
+.prop-box h2{font-size:16px;font-weight:800;margin-bottom:5px}
+.prop-box p{font-size:11px;opacity:0.65;margin:2px 0}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0 16px}
+.hero-a{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:12px;padding:20px;text-align:center}
+.hero-b{background:rgba(29,170,85,0.85);border:1px solid rgba(29,170,85,1);border-radius:12px;padding:20px;text-align:center}
+.big{font-size:34px;font-weight:900;letter-spacing:-0.03em;line-height:1}
+.sm{font-size:10px;opacity:0.70;margin-top:4px;text-transform:uppercase;letter-spacing:0.06em}
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi{background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.18);border-radius:10px;padding:12px;text-align:center}
+.kv{font-size:18px;font-weight:900}
+.kl{font-size:9px;opacity:0.58;margin-top:3px;text-transform:uppercase;letter-spacing:0.06em}
+/* ── Sections ── */
+.section{padding:28px 40px;break-inside:avoid;page-break-inside:avoid;border-bottom:1px solid #EAF0FB}
+.section:last-of-type{border-bottom:none}
+.sec-head{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+.section h2{font-size:16px;font-weight:900;color:#1C2B4A;margin:0;letter-spacing:-0.01em}
+.sec-line{flex:1;height:2px;background:linear-gradient(90deg,#1A6FDB,#1A6FDB20);border-radius:2px;margin-left:8px}
+.section .desc{font-size:11px;color:#6B7A9A;margin:5px 0 18px}
+/* ── Stat boxes ── */
+.sboxes{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.sbox{background:#F0F5FF;border:1px solid #D6E4FA;border-radius:10px;padding:13px;text-align:center}
+.sbox .v{font-size:14px;font-weight:900;line-height:1.2}
+.sbox .l{font-size:9px;color:#7A8DB5;text-transform:uppercase;margin-top:4px;letter-spacing:0.06em}
+/* ── Tables ── */
+table{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:10px}
+thead th{background:#1C2B4A;color:#fff;padding:9px 11px;font-size:9.5px;font-weight:700;text-align:left;text-transform:uppercase;letter-spacing:0.06em}
+thead th:first-child{border-radius:6px 0 0 0}
+thead th:last-child{border-radius:0 6px 0 0}
+td{padding:8px 11px;border-bottom:1px solid #EAF0FB;vertical-align:middle}
+tr:nth-child(even) td{background:#F7FAFF}
+.total-row td{background:#EBF5FF!important;font-weight:800;border-top:2px solid #1A6FDB;font-size:12px}
+.note{font-size:10px;color:#8896B5;margin-top:8px;line-height:1.5}
+/* ── Total box ── */
+.total-box{background:linear-gradient(135deg,#1C2B4A,#1A6FDB);border-radius:12px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;margin-top:14px;color:#fff}
+.total-box span:first-child{font-size:14px;font-weight:700}
+.total-box span:last-child{font-size:22px;font-weight:900}
+/* ── Recommendations ── */
+.rec{display:flex;gap:14px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #EAF0FB;align-items:flex-start}
+.rec:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.num{width:28px;height:28px;border-radius:50%;background:#1A6FDB;color:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.rec-body h4{font-size:13px;font-weight:800;color:#1C2B4A;margin:0 0 3px}
+.rec-body p{font-size:11.5px;color:#4A5568;line-height:1.5;margin:0}
+/* ── Bar chart ── */
+.bar-row{margin-bottom:14px}
+.bar-labels{display:flex;justify-content:space-between;margin-bottom:5px;font-size:11px}
+.bar-labels .name{font-weight:700;color:#1C2B4A}
+.bar-labels .val{font-weight:800;color:#1A6FDB}
+.bar-track{background:#EAF0FB;border-radius:6px;height:14px;overflow:hidden;border:1px solid #D6E4FA}
+.bar-fill{height:14px;border-radius:6px}
+/* ── Print controls ── */
+.print-btn{position:fixed;top:16px;right:16px;background:linear-gradient(135deg,#1A6FDB,#0F55B0);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(26,111,219,0.35);z-index:999}
+.print-btn:hover{opacity:0.9}
+/* ── Footer ── */
+.footer{background:#1C2B4A;color:rgba(255,255,255,0.5);text-align:center;padding:16px 40px;font-size:9.5px;line-height:1.8}
 @media print{
-  body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .no-print{display:none!important}
+  body{-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:11.5px}
+  .print-btn{display:none!important}
   .cover{page-break-after:always}
 }
 </style>
 </head><body>
 
+<button class="print-btn" onclick="window.print()">⬇ Print / Save as PDF</button>
+
 <!-- COVER PAGE -->
 <div class="cover">
-  <div style="font-size:10px;opacity:0.5;text-transform:uppercase;letter-spacing:0.1em">${appName} &middot; Laundry Intelligence v3.2</div>
+  <div class="cover-tag">${appName} &middot; Laundry Intelligence Platform v3.2</div>
   <h1>Savings &amp; Cost Analysis Report</h1>
   <div class="sub">Chemical Cost Comparison vs Competitor Market Pricing</div>
-  <div class="prop">
-    <h2>${hotel}</h2>
-    <div style="opacity:0.7;font-size:12px">${rooms} rooms &middot; ${occ}% occupancy &middot; ${dailyKg.toFixed(0)} kg/day &middot; ${today}</div>
-    <div style="opacity:0.5;font-size:11px;margin-top:3px">Prepared by: ${user.name} &middot; ${user.role}</div>
+  <div class="prop-box">
+    <h2>${eHotel}</h2>
+    <p>${rooms} rooms &middot; ${occ}% occupancy &middot; ${dailyKg.toFixed(0)} kg/day</p>
+    <p>Prepared by: ${eUserName} &middot; ${eUserRole} &middot; ${today}</p>
   </div>
-  <div class="hero">
-    <div class="ha"><div class="sm">ANNUAL SAVINGS</div><div class="big">&#8369;${(total/1000).toFixed(1)}K</div><div class="sm">for ${hotel}</div></div>
-    <div class="hb"><div class="sm">COST REDUCTION</div><div class="big">${pctSave}%</div><div class="sm">vs competitor pricing</div></div>
+  <div class="hero-grid">
+    <div class="hero-a">
+      <div class="sm">ANNUAL SAVINGS</div>
+      <div class="big">&#8369;${(total/1000).toFixed(1)}K</div>
+      <div class="sm">${eHotel}</div>
+    </div>
+    <div class="hero-b">
+      <div class="sm">COST REDUCTION</div>
+      <div class="big">${pctSave}%</div>
+      <div class="sm">vs competitor pricing</div>
+    </div>
   </div>
-  <div class="kpis">
-    <div class="kpi"><div class="v">&#8369;${dailySave.toFixed(0)}</div><div class="l">Daily Savings</div></div>
-    <div class="kpi"><div class="v">&#8369;${(total/12/1000).toFixed(1)}K</div><div class="l">Monthly Savings</div></div>
-    <div class="kpi"><div class="v">&lt;3 mo</div><div class="l">ROI Payback</div></div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kv">&#8369;${dailySave.toFixed(0)}</div><div class="kl">Daily Savings</div></div>
+    <div class="kpi"><div class="kv">&#8369;${(total/12/1000).toFixed(1)}K</div><div class="kl">Monthly Savings</div></div>
+    <div class="kpi"><div class="kv">&lt;3 mo</div><div class="kl">ROI Payback</div></div>
   </div>
 </div>
 
 <!-- CHEMICAL COMPARISON -->
 <div class="section">
-  <h2>Chemical Price Comparison</h2>
+  <div class="sec-head"><h2>Chemical Price Comparison</h2><div class="sec-line"></div></div>
   <div class="desc">Competitor market pricing vs NORTKEM pricing — per litre and per kg of linen processed</div>
   <div class="sboxes">
-    <div class="sbox"><div class="v" style="color:#FF3B30">&#8369;${cpk.toFixed(4)}</div><div class="l">Competitor /kg</div></div>
+    <div class="sbox"><div class="v" style="color:#E03131">&#8369;${cpk.toFixed(4)}</div><div class="l">Competitor /kg</div></div>
     <div class="sbox"><div class="v" style="color:#1A6FDB">&#8369;${ourCPK.toFixed(4)}</div><div class="l">NORTKEM /kg</div></div>
-    <div class="sbox"><div class="v" style="color:#34C759">&#8369;${(cpk-ourCPK).toFixed(4)}</div><div class="l">Savings /kg</div></div>
-    <div class="sbox"><div class="v" style="color:#34C759">${pctSave}%</div><div class="l">Reduction</div></div>
+    <div class="sbox"><div class="v" style="color:#1DAA55">&#8369;${(cpk-ourCPK).toFixed(4)}</div><div class="l">Savings /kg</div></div>
+    <div class="sbox"><div class="v" style="color:#1DAA55">${pctSave}%</div><div class="l">Reduction</div></div>
   </div>
   <table>
-    <thead><tr><th>Product</th><th>Dose</th><th style="text-align:right">Comp. &#8369;/L</th><th style="text-align:right">NK &#8369;/L</th><th style="text-align:right">Comp. /kg</th><th style="text-align:right">NK /kg</th><th style="text-align:center">Saved</th></tr></thead>
+    <thead><tr>
+      <th>Product</th><th style="text-align:center">Dose</th>
+      <th style="text-align:right">Comp. &#8369;/L</th><th style="text-align:right">NK &#8369;/L</th>
+      <th style="text-align:right">Comp. /kg</th><th style="text-align:right">NK /kg</th>
+      <th style="text-align:center">Saved</th>
+    </tr></thead>
     <tbody>
       ${chemRows}
       <tr class="total-row">
         <td colspan="2"><strong>TOTAL (all chemicals)</strong></td>
-        <td style="text-align:right;color:#FF3B30">&#8369;${cpk.toFixed(4)}/kg</td>
+        <td style="text-align:right;color:#E03131">&#8369;${cpk.toFixed(4)}/kg</td>
         <td style="text-align:right;color:#1A6FDB">&#8369;${ourCPK.toFixed(4)}/kg</td>
         <td></td><td></td>
-        <td style="text-align:center;color:#34C759">${pctSave}%</td>
+        <td style="text-align:center;color:#1DAA55;font-weight:900">${pctSave}%</td>
       </tr>
     </tbody>
   </table>
@@ -2199,102 +2269,104 @@ tr:nth-child(even) td{background:#F9F9FB}
 
 <!-- SAVINGS BREAKDOWN -->
 <div class="section">
-  <h2>Annual Savings Breakdown</h2>
-  <div class="desc">Total estimated annual savings for ${hotel}: &#8369;${(total/1000).toFixed(1)}K</div>
+  <div class="sec-head"><h2>Annual Savings Breakdown</h2><div class="sec-line"></div></div>
+  <div class="desc">Total estimated annual savings for ${eHotel}: &#8369;${(total/1000).toFixed(1)}K</div>
   ${saveBars}
   <div class="total-box">
-    <span style="font-size:15px;font-weight:800">TOTAL ANNUAL SAVINGS</span>
-    <span style="font-size:24px;font-weight:900">&#8369;${(total/1000).toFixed(1)}K</span>
+    <span>TOTAL ANNUAL SAVINGS</span>
+    <span>&#8369;${(total/1000).toFixed(1)}K</span>
   </div>
   <br>
   <table>
-    <thead><tr><th>Category</th><th>How Calculated</th><th style="text-align:right">Annual Amount</th><th style="text-align:center">Reduction</th></tr></thead>
+    <thead><tr>
+      <th>Category</th><th>Calculation Basis</th>
+      <th style="text-align:right">Annual Amount</th><th style="text-align:center">Reduction</th>
+    </tr></thead>
     <tbody>
-      <tr><td>Chemical Costs</td><td>&#8369;${cpk.toFixed(3)} vs &#8369;${ourCPK.toFixed(3)} &times; ${dailyKg.toFixed(0)} kg/day &times; 365</td><td style="text-align:right;color:#1A6FDB;font-weight:700">&#8369;${annualSave.toFixed(0)}</td><td style="text-align:center;color:#34C759">${pctSave}%</td></tr>
-      <tr><td>Water Savings</td><td>${dailyKg.toFixed(0)} kg/day &times; 52L/kg &times; &#8369;${wRate}/L &times; 18% &times; 365</td><td style="text-align:right;color:#1A6FDB;font-weight:700">&#8369;${waterSave.toFixed(0)}</td><td style="text-align:center;color:#34C759">18%</td></tr>
-      <tr><td>Energy Savings</td><td>${dailyKg.toFixed(0)} kg/day &times; 0.07kWh/kg &times; &#8369;${eRate}/kWh &times; 18% &times; 365</td><td style="text-align:right;color:#1A6FDB;font-weight:700">&#8369;${energySave.toFixed(0)}</td><td style="text-align:center;color:#34C759">18%</td></tr>
-      <tr><td>Linen Life Extension</td><td>30% of chemical savings (reduced rewash &amp; fabric protection)</td><td style="text-align:right;color:#1A6FDB;font-weight:700">&#8369;${linenSave.toFixed(0)}</td><td style="text-align:center;color:#34C759">25%</td></tr>
-      <tr class="total-row"><td><strong>TOTAL</strong></td><td></td><td style="text-align:right;color:#1A6FDB">&#8369;${total.toFixed(0)}</td><td style="text-align:center;color:#34C759">${pctSave}% avg</td></tr>
+      <tr><td>Chemical Costs</td><td>&#8369;${cpk.toFixed(3)} vs &#8369;${ourCPK.toFixed(3)} &times; ${dailyKg.toFixed(0)} kg/day &times; 365 days</td><td style="text-align:right;color:#1A6FDB;font-weight:700">&#8369;${annualSave.toFixed(0)}</td><td style="text-align:center;color:#1DAA55">${pctSave}%</td></tr>
+      <tr><td>Water Savings</td><td>${dailyKg.toFixed(0)} kg/day &times; 52 L/kg &times; &#8369;${wRate}/L &times; 18% &times; 365</td><td style="text-align:right;color:#1A6FDB;font-weight:700">&#8369;${waterSave.toFixed(0)}</td><td style="text-align:center;color:#1DAA55">18%</td></tr>
+      <tr><td>Energy Savings</td><td>${dailyKg.toFixed(0)} kg/day &times; 0.07 kWh/kg &times; &#8369;${eRate}/kWh &times; 18% &times; 365</td><td style="text-align:right;color:#1A6FDB;font-weight:700">&#8369;${energySave.toFixed(0)}</td><td style="text-align:center;color:#1DAA55">18%</td></tr>
+      <tr><td>Linen Life Extension</td><td>30% of chemical savings (reduced rewash &amp; fabric protection)</td><td style="text-align:right;color:#1A6FDB;font-weight:700">&#8369;${linenSave.toFixed(0)}</td><td style="text-align:center;color:#1DAA55">25%</td></tr>
+      <tr class="total-row"><td><strong>TOTAL</strong></td><td></td><td style="text-align:right;color:#1A6FDB">&#8369;${total.toFixed(0)}</td><td style="text-align:center;color:#1DAA55">${pctSave}% avg</td></tr>
     </tbody>
   </table>
 </div>
 
 <!-- MONTHLY PROJECTION -->
 <div class="section">
-  <h2>Monthly Cost Projection</h2>
-  <div class="desc">12-month comparison: Competitor (red) vs NORTKEM (blue)</div>
+  <div class="sec-head"><h2>Monthly Cost Projection</h2><div class="sec-line"></div></div>
+  <div class="desc">12-month comparison: Competitor pricing vs NORTKEM pricing</div>
   <table>
-    <thead><tr><th>Month</th><th style="text-align:right">Competitor (&#8369;)</th><th style="text-align:right">NORTKEM (&#8369;)</th><th style="text-align:right">Monthly Savings</th></tr></thead>
+    <thead><tr>
+      <th>Month</th>
+      <th style="text-align:right">Competitor (&#8369;)</th>
+      <th style="text-align:right">NORTKEM (&#8369;)</th>
+      <th style="text-align:right">Monthly Savings</th>
+    </tr></thead>
     <tbody>${moRows}</tbody>
     <tfoot><tr class="total-row">
-      <td><strong>ANNUAL</strong></td>
-      <td style="text-align:right;color:#FF3B30">&#8369;${(chartData.reduce((a,d)=>a+d.cur,0)).toLocaleString()}</td>
+      <td><strong>ANNUAL TOTAL</strong></td>
+      <td style="text-align:right;color:#E03131">&#8369;${(chartData.reduce((a,d)=>a+d.cur,0)).toLocaleString()}</td>
       <td style="text-align:right;color:#1A6FDB">&#8369;${(chartData.reduce((a,d)=>a+d.nk,0)).toLocaleString()}</td>
-      <td style="text-align:right;color:#34C759">&#8369;${(chartData.reduce((a,d)=>a+d.cur-d.nk,0)).toLocaleString()}</td>
+      <td style="text-align:right;color:#1DAA55">&#8369;${(chartData.reduce((a,d)=>a+d.cur-d.nk,0)).toLocaleString()}</td>
     </tr></tfoot>
   </table>
 </div>
 
 <!-- PROPERTY SUMMARY -->
 <div class="section">
-  <h2>Property Summary</h2>
+  <div class="sec-head"><h2>Property Summary</h2><div class="sec-line"></div></div>
   <table>
     <tbody>
-      ${[['Property',hotel],['Prepared By',`${user.name} · ${user.role}`],['Rooms',`${rooms} rooms`],['Occupancy',`${occ}%`],['Linen/Day',`${dailyKg.toFixed(1)} kg/day`],['Annual Volume',`${(dailyKg*365/1000).toFixed(1)} metric tons/yr`],['Water Rate',`&#8369;${wRate}/L`],['Electricity',`&#8369;${eRate}/kWh`],['Report Date',today]].map(([k,v])=>`<tr><td style="font-weight:700;color:#636366;width:35%">${k}</td><td>${v}</td></tr>`).join('')}
+      ${[['Property',eHotel],['Prepared By',`${eUserName} &middot; ${eUserRole}`],['Rooms',`${rooms} rooms`],['Occupancy Rate',`${occ}%`],['Daily Linen Load',`${dailyKg.toFixed(1)} kg/day`],['Annual Linen Volume',`${(dailyKg*365/1000).toFixed(1)} metric tons/yr`],['Water Cost Rate',`&#8369;${wRate}/L`],['Electricity Rate',`&#8369;${eRate}/kWh`],['Report Date',today]].map(([k,v])=>`<tr><td style="font-weight:700;color:#6B7A9A;width:38%">${k}</td><td style="font-weight:500">${v}</td></tr>`).join('')}
     </tbody>
   </table>
 </div>
 
 <!-- RECOMMENDATIONS -->
 <div class="section">
-  <h2>Recommendations</h2>
+  <div class="sec-head"><h2>Recommendations</h2><div class="sec-line"></div></div>
+  <div style="margin-top:14px">
   ${[
     ['Switch to NORTKEM Chemicals',`Replacing competitor chemicals reduces cost from &#8369;${cpk.toFixed(3)}/kg to &#8369;${ourCPK.toFixed(3)}/kg — a ${pctSave}% reduction saving &#8369;${dailySave.toFixed(0)}/day.`],
     ['Maintain Proper Dosing','Use the Simulator tab to verify optimal dose (mL/kg) per linen type. Under-dosing causes rewash (2× cost); over-dosing wastes chemicals.'],
     ['Monitor Rewash Rate',`Target under 2% rewash. Every 1% increase adds ≈&#8369;${Math.round(dailyKg*0.01*ourCPK*365).toLocaleString()}/year in extra costs.`],
-    ['Optimize Water & Energy',`Estimated &#8369;${waterSave.toFixed(0)}/yr water savings and &#8369;${energySave.toFixed(0)}/yr energy savings available through cycle optimization.`],
+    ['Optimize Water &amp; Energy',`Estimated &#8369;${waterSave.toFixed(0)}/yr water savings and &#8369;${energySave.toFixed(0)}/yr energy savings through cycle optimization.`],
     ['Schedule Quarterly Reviews','Review chemical pricing every quarter. With competitor prices rising, the savings gap typically widens over time.'],
-  ].map(([t,b],i)=>`<div class="rec"><div class="num">${i+1}</div><div><h4>${t}</h4><p>${b}</p></div></div>`).join('')}
+  ].map(([t,b],i)=>`<div class="rec"><div class="num">${i+1}</div><div class="rec-body"><h4>${t}</h4><p>${b}</p></div></div>`).join('')}
+  </div>
 </div>
 
 <div class="footer">
   ${appName} &middot; Ecolab Benchmarked &middot; TRSA Standard &middot; DOH Compliant &middot; Pampanga, Philippines<br>
-  Savings projections are estimates based on provided inputs. Generated ${today}
+  All savings projections are estimates based on provided inputs and industry benchmarks. Generated: ${today}
 </div>
-
-<script>window.onload=function(){window.print();}</script>
 </body></html>`;
 
     try {
-      const blob = new Blob([html], {type:'text/html;charset=utf-8'});
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href     = url;
-      a.download = `NORTKEM_Savings_${hotel.replace(/\s+/g,'_')}_${new Date().getFullYear()}.html`;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(()=>URL.revokeObjectURL(url), 2000);
+      const win = window.open('', '_blank', 'width=900,height=700');
+      if (!win) { alert('Please allow pop-ups to open the PDF report, then click Download PDF again.'); return; }
+      win.document.write(html);
+      win.document.close();
     } catch(e) {
-      alert('Download failed. Please screenshot the report sections above.');
+      alert('Could not open print window. Please allow pop-ups for this site.');
     }
   };
 
   // ── FULL-SCREEN REPORT OVERLAY ───────────────────────────────
   if (showReport) {
     return (
-      <div style={{position:"fixed",inset:0,background:C.bg,zIndex:9999,overflowY:"auto",fontFamily:F}}>
+      <div style={{position:"fixed",inset:0,background:BG,backgroundAttachment:"fixed",zIndex:9999,overflowY:"auto",fontFamily:F}}>
         {/* Sticky header */}
-        <div style={{position:"sticky",top:0,zIndex:10,background:C.navy,padding:"12px 16px",display:"flex",alignItems:"center",gap:10}}>
+        <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(255,255,255,0.88)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid rgba(0,0,0,0.07)",padding:"10px 16px",display:"flex",alignItems:"center",gap:10,boxShadow:"0 1px 16px rgba(0,0,0,0.06)"}}>
           <button onClick={()=>setShowReport(false)}
-            style={{background:"rgba(255,255,255,0.12)",border:"none",color:"#fff",borderRadius:10,padding:"7px 13px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:F}}>
+            style={{background:"rgba(0,0,0,0.05)",border:"1px solid rgba(0,0,0,0.08)",color:C.navy,borderRadius:10,padding:"7px 13px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:F}}>
             ← Back
           </button>
-          <div style={{flex:1,color:"#fff",fontSize:14,fontWeight:800}}>Savings Report</div>
+          <div style={{flex:1,color:C.navy,fontSize:14,fontWeight:800}}>Savings Report</div>
           <button onClick={printPDF}
-            style={{background:"#fff",border:"none",color:C.navy,borderRadius:10,padding:"7px 13px",fontSize:12,fontWeight:800,cursor:"pointer",fontFamily:F,display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-            ⬇️ Download Report
+            style={{background:`linear-gradient(135deg,${C.blue},${C.blue}cc)`,border:"none",color:"#fff",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:800,cursor:"pointer",fontFamily:F,display:"flex",alignItems:"center",gap:6,flexShrink:0,boxShadow:`0 3px 12px ${C.blue}38`}}>
+            <Icon name="download" size={14} color="#fff" strokeWidth={2.2}/> Download PDF
           </button>
         </div>
 
@@ -2816,27 +2888,48 @@ function Account({user,setUser,onLogout,linenTypes,chemicals,settings,setSetting
 }
 
 // ─── NAV ────────────────────────────────────────────────────
+// ─── SVG ICON SYSTEM ─────────────────────────────────────────
+const ICON_PATHS = {
+  dashboard: <><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></>,
+  simulator: <><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2v-4M9 21H5a2 2 0 01-2-2v-4m0 0h18"/></>,
+  linen:     <><path d="M2 6h20M2 12h20M2 18h20"/><path d="M6 3v18M18 3v18"/></>,
+  chemicals: <><path d="M10 2v7.5L6 17a2 2 0 001.8 2.9h8.4A2 2 0 0018 17l-4-7.5V2"/><path d="M8.5 2h7"/><path d="M8 13h8"/></>,
+  process:   <><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></>,
+  savings:   <><polyline points="22 7 13.5 15.5 8.5 10.5 1 18"/><polyline points="16 7 22 7 22 13"/></>,
+  account:   <><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></>,
+  menu:      <><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></>,
+  close:     <><path d="M18 6L6 18M6 6l12 12"/></>,
+  download:  <><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></>,
+  live:      <><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7" strokeOpacity="0.4"/></>,
+};
+const Icon = ({name, size=18, color="currentColor", strokeWidth=1.8}) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    {ICON_PATHS[name]}
+  </svg>
+);
+
 const NAV=[
-  {id:"dashboard",icon:"📊",label:"Home"},
-  {id:"formula",  icon:"🧪",label:"Simulator"},
-  {id:"linen",    icon:"🧺",label:"Linen Types"},
-  {id:"chemicals",icon:"🧴",label:"Chemicals"},
-  {id:"process",  icon:"✅",label:"Process"},
-  {id:"savings",  icon:"📈",label:"Savings"},
-  {id:"account",  icon:"👤",label:"Account"},
+  {id:"dashboard",icon:"dashboard",label:"Home"},
+  {id:"formula",  icon:"simulator",label:"Simulator"},
+  {id:"linen",    icon:"linen",    label:"Linen Types"},
+  {id:"chemicals",icon:"chemicals",label:"Chemicals"},
+  {id:"process",  icon:"process",  label:"Process"},
+  {id:"savings",  icon:"savings",  label:"Savings"},
+  {id:"account",  icon:"account",  label:"Account"},
 ];
 
 // ─── ROOT ────────────────────────────────────────────────────
 export default function App() {
-  const [screen,     setScreen]     = useState("login");
-  const [user,       setUser]       = useState(null);
-  const [active,     setActive]     = useState("dashboard");
-  const [linenTypes, setLinenTypes] = useState(DEFAULT_LINEN_TYPES);
-  const [chemicals,  setChemicals]  = useState(DEFAULT_CHEMICALS);
-  const [extraUsers, setExtraUsers] = useState([]);
-  const [settings,   setSettings]   = useState({ waterCostPerL:0.02, energyCostPerKwh:9.20, appName:"NORTKEM WASH IQ" });
-  const [reportCount,setReportCount]= useState(0);
-  const [winW,       setWinW]       = useState(typeof window!=="undefined"?window.innerWidth:480);
+  const [screen,      setScreen]     = useState("login");
+  const [user,        setUser]       = useState(null);
+  const [active,      setActive]     = useState("dashboard");
+  const [linenTypes,  setLinenTypes] = useState(DEFAULT_LINEN_TYPES);
+  const [chemicals,   setChemicals]  = useState(DEFAULT_CHEMICALS);
+  const [extraUsers,  setExtraUsers] = useState([]);
+  const [settings,    setSettings]   = useState({ waterCostPerL:0.02, energyCostPerKwh:9.20, appName:"NORTKEM WASH IQ" });
+  const [reportCount, setReportCount]= useState(0);
+  const [winW,        setWinW]       = useState(typeof window!=="undefined"?window.innerWidth:480);
+  const [sidebarOpen, setSidebarOpen]= useState(true);
   const tabRef = useRef(null);
 
   // ── Load all persisted data on startup ─────────────────
@@ -2957,7 +3050,9 @@ export default function App() {
     }
   };
 
-  const globalStyle = `*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}input[type=number]{-moz-appearance:textfield}::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:#d1d1d6;border-radius:4px}body{background:${C.bg};overscroll-behavior:none}input[type=range]{height:4px}`;
+  const globalStyle = `*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none}input[type=number]{-moz-appearance:textfield}::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.15);border-radius:5px}::-webkit-scrollbar-track{background:transparent}body{background:#EEF2FF;overscroll-behavior:none}input[type=range]{height:4px}input::placeholder{color:#8896B5}`;
+
+  const SW = 230; // sidebar width
 
   // ── DESKTOP LAYOUT ──────────────────────────────────────────
   if (isDesktop) {
@@ -2965,60 +3060,78 @@ export default function App() {
       <IsMobile.Provider value={false}>
       <>
       <style>{globalStyle}</style>
-      <div style={{display:"flex",minHeight:"100vh",background:C.bg,fontFamily:F}}>
+      <div style={{minHeight:"100vh",fontFamily:F}}>
+        {/* Background orbs */}
+        <div style={{position:"fixed",top:"-15%",right:"5%",width:550,height:550,borderRadius:"50%",background:"radial-gradient(circle,rgba(26,111,219,0.08) 0%,transparent 70%)",pointerEvents:"none",zIndex:0}}/>
+        <div style={{position:"fixed",bottom:"-10%",left:"10%",width:450,height:450,borderRadius:"50%",background:"radial-gradient(circle,rgba(112,72,232,0.06) 0%,transparent 70%)",pointerEvents:"none",zIndex:0}}/>
 
-        {/* Sidebar */}
-        <nav style={{width:224,position:"fixed",top:0,left:0,height:"100vh",background:C.card,borderRight:`1px solid ${C.border}`,display:"flex",flexDirection:"column",zIndex:200,boxShadow:"2px 0 16px rgba(0,0,0,0.05)"}}>
-          {/* Brand */}
-          <div style={{padding:"18px 16px 16px",borderBottom:`1px solid ${C.border}`}}>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{width:36,height:36,borderRadius:10,background:C.bg,border:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Logo size={26}/></div>
-              <div>
-                <div style={{fontSize:12,fontWeight:800,color:C.text,letterSpacing:"-0.02em",lineHeight:1.2}}>{appName}</div>
-                <div style={{fontSize:9,color:C.textMuted,fontWeight:500,marginTop:1}}>Laundry Intelligence v3.2</div>
+        {/* Sidebar — fixed, never participates in document flow */}
+        <nav style={{position:"fixed",top:0,left:0,height:"100vh",width:sidebarOpen?SW:0,overflow:"hidden",background:"rgba(255,255,255,0.75)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderRight:`1px solid ${C.border}`,zIndex:200,transition:"width 0.25s cubic-bezier(0.4,0,0.2,1)",boxShadow:"4px 0 24px rgba(0,0,0,0.06)"}}>
+          {/* Inner container always full width so content doesn't squish during animation */}
+          <div style={{width:SW,height:"100%",display:"flex",flexDirection:"column"}}>
+            {/* Brand */}
+            <div style={{padding:"18px 16px 14px",borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{width:38,height:38,borderRadius:11,background:C.blueLight,border:"1px solid rgba(0,0,0,0.08)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Logo size={28}/></div>
+                <div style={{minWidth:0}}>
+                  <div style={{fontSize:12,fontWeight:800,color:C.navy,letterSpacing:"-0.02em",lineHeight:1.2,whiteSpace:"nowrap"}}>{appName}</div>
+                  <div style={{fontSize:9,color:C.textMuted,fontWeight:500,marginTop:1,whiteSpace:"nowrap"}}>Laundry Intelligence v3.2</div>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Nav items */}
-          <div style={{flex:1,padding:"10px 10px",overflowY:"auto"}}>
-            {NAV.map(t=>(
-              <button key={t.id} onClick={()=>setActive(t.id)}
-                style={{width:"100%",display:"flex",alignItems:"center",gap:11,padding:"10px 12px",borderRadius:12,border:"none",background:active===t.id?C.blueLight:"transparent",cursor:"pointer",marginBottom:3,textAlign:"left",transition:"background 0.15s"}}>
-                <span style={{fontSize:19,flexShrink:0,filter:active===t.id?"none":"grayscale(40%) opacity(70%)"}}>{t.icon}</span>
-                <span style={{color:active===t.id?C.blue:C.textSub,fontSize:13,fontWeight:active===t.id?700:500,fontFamily:F}}>{t.label}</span>
-                {active===t.id&&<div style={{marginLeft:"auto",width:5,height:5,borderRadius:"50%",background:C.blue}}/>}
-              </button>
-            ))}
-          </div>
+            {/* Nav items */}
+            <div style={{flex:1,padding:"10px",overflowY:"auto"}}>
+              {NAV.map(t=>(
+                <button key={t.id} onClick={()=>setActive(t.id)}
+                  style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:12,border:"none",background:active===t.id?C.blueLight:"transparent",cursor:"pointer",marginBottom:2,textAlign:"left",transition:"all 0.15s"}}>
+                  <span style={{flexShrink:0,display:"flex",alignItems:"center",opacity:active===t.id?1:0.45}}>
+                    <Icon name={t.icon} size={17} color={active===t.id?C.blue:C.navy} strokeWidth={active===t.id?2.2:1.7}/>
+                  </span>
+                  <span style={{color:active===t.id?C.blue:C.textSub,fontSize:13,fontWeight:active===t.id?700:500,fontFamily:F,whiteSpace:"nowrap"}}>{t.label}</span>
+                  {active===t.id&&<div style={{marginLeft:"auto",width:6,height:6,borderRadius:"50%",background:C.blue,flexShrink:0}}/>}
+                </button>
+              ))}
+            </div>
 
-          {/* User info at bottom */}
-          <div style={{padding:"12px 14px",borderTop:`1px solid ${C.border}`}}>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{width:34,height:34,borderRadius:10,background:C.blueLight,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:800,color:C.blue,fontFamily:F,flexShrink:0}}>{user.avatar}</div>
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{color:C.text,fontSize:12,fontWeight:700,fontFamily:F,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.name}</div>
-                <div style={{color:C.textMuted,fontSize:10,fontFamily:F,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.property}</div>
+            {/* User info at bottom */}
+            <div style={{padding:"12px 14px",borderTop:`1px solid ${C.border}`,flexShrink:0}}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{width:34,height:34,borderRadius:10,background:C.blueLight,border:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:800,color:C.blue,fontFamily:F,flexShrink:0}}>{user.avatar}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{color:C.text,fontSize:12,fontWeight:700,fontFamily:F,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.name}</div>
+                  <div style={{color:C.textMuted,fontSize:10,fontFamily:F,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user.property}</div>
+                </div>
+                <div style={{width:8,height:8,borderRadius:"50%",background:C.green,flexShrink:0}}/>
               </div>
-              <div style={{width:8,height:8,borderRadius:"50%",background:C.green,flexShrink:0}}/>
             </div>
           </div>
         </nav>
 
-        {/* Main content area */}
-        <div style={{marginLeft:224,flex:1,display:"flex",flexDirection:"column",minHeight:"100vh"}}>
+        {/* Main content — offset by sidebar width using paddingLeft so it never overlaps */}
+        <div style={{paddingLeft:sidebarOpen?SW:0,minHeight:"100vh",display:"flex",flexDirection:"column",transition:"padding-left 0.25s cubic-bezier(0.4,0,0.2,1)"}}>
           {/* Top bar */}
-          <header style={{background:"rgba(255,255,255,0.94)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:`1px solid ${C.border}`,padding:"12px 28px",position:"sticky",top:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <span style={{fontSize:20}}>{NAV.find(t=>t.id===active)?.icon}</span>
-              <span style={{color:C.text,fontSize:17,fontWeight:700,fontFamily:F,letterSpacing:"-0.02em"}}>{NAV.find(t=>t.id===active)?.label}</span>
+          <header style={{background:"rgba(255,255,255,0.80)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid rgba(0,0,0,0.07)",padding:"0 24px",height:56,position:"sticky",top:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"0 1px 16px rgba(0,0,0,0.06)"}}>
+            <div style={{display:"flex",alignItems:"center",gap:12}}>
+              {/* Sidebar toggle */}
+              <button onClick={()=>setSidebarOpen(v=>!v)}
+                style={{width:34,height:34,borderRadius:9,border:`1px solid ${C.border}`,background:"rgba(255,255,255,0.70)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all 0.15s"}}>
+                <Icon name={sidebarOpen?"close":"menu"} size={16} color={C.navy} strokeWidth={2}/>
+              </button>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <Icon name={NAV.find(t=>t.id===active)?.icon} size={18} color={C.blue} strokeWidth={2}/>
+                <span style={{color:C.navy,fontSize:16,fontWeight:700,fontFamily:F,letterSpacing:"-0.02em"}}>{NAV.find(t=>t.id===active)?.label}</span>
+              </div>
             </div>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{background:C.greenLight,borderRadius:20,padding:"3px 10px",color:C.green,fontSize:11,fontWeight:700}}>● Live</div>
-              <div style={{display:"flex",alignItems:"center",gap:8,background:C.bg,borderRadius:12,padding:"6px 12px",border:`1px solid ${C.border}`}}>
-                <div style={{width:26,height:26,borderRadius:8,background:C.blueLight,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:C.blue,fontFamily:F}}>{user.avatar}</div>
+              <div style={{display:"flex",alignItems:"center",gap:5,background:C.greenLight,borderRadius:20,padding:"4px 10px",border:`1px solid ${C.green}30`}}>
+                <Icon name="live" size={10} color={C.green} strokeWidth={2.5}/>
+                <span style={{color:C.green,fontSize:11,fontWeight:700,fontFamily:F}}>Live</span>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:8,background:"rgba(255,255,255,0.70)",borderRadius:12,padding:"6px 12px",border:"1px solid rgba(0,0,0,0.08)"}}>
+                <div style={{width:28,height:28,borderRadius:8,background:C.blueLight,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:C.blue,fontFamily:F}}>{user.avatar}</div>
                 <div>
-                  <div style={{color:C.text,fontSize:11,fontWeight:700,fontFamily:F,lineHeight:1.2}}>{user.name}</div>
+                  <div style={{color:C.navy,fontSize:11,fontWeight:700,fontFamily:F,lineHeight:1.2}}>{user.name}</div>
                   <div style={{color:C.textMuted,fontSize:9,fontFamily:F}}>{user.property}</div>
                 </div>
               </div>
@@ -3026,8 +3139,8 @@ export default function App() {
           </header>
 
           {/* Page content */}
-          <main style={{flex:1,padding:"28px 32px 40px",overflowY:"auto"}}>
-            <div style={{maxWidth:960,margin:"0 auto"}}>
+          <main style={{flex:1,padding:"28px 32px 40px"}}>
+            <div style={{maxWidth:980,margin:"0 auto"}}>
               {render()}
             </div>
           </main>
@@ -3043,26 +3156,34 @@ export default function App() {
     <IsMobile.Provider value={true}>
     <>
     <style>{globalStyle}</style>
-    <div style={{maxWidth:480,margin:"0 auto",background:C.bg,minHeight:"100vh",display:"flex",flexDirection:"column",fontFamily:F}}>
-      <div style={{background:"rgba(255,255,255,0.94)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:`1px solid ${C.border}`,padding:"11px 16px",position:"sticky",top:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+    <div style={{maxWidth:480,margin:"0 auto",minHeight:"100vh",display:"flex",flexDirection:"column",fontFamily:F,position:"relative"}}>
+      {/* Mobile header */}
+      <div style={{background:"rgba(255,255,255,0.82)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid rgba(0,0,0,0.07)",padding:"10px 16px",position:"sticky",top:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"0 1px 16px rgba(0,0,0,0.06)"}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <div style={{width:30,height:30,borderRadius:8,background:C.bg,border:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center"}}><Logo size={22}/></div>
-          <div><div style={{fontSize:13,fontWeight:800,color:C.text,letterSpacing:"-0.02em",lineHeight:1.2}}>{appName}</div><div style={{fontSize:9,color:C.textMuted,fontWeight:500}}>Metric · kg · L · °C · mL · cm</div></div>
+          <div style={{width:32,height:32,borderRadius:9,background:C.blueLight,border:"1px solid rgba(0,0,0,0.08)",display:"flex",alignItems:"center",justifyContent:"center"}}><Logo size={22}/></div>
+          <div>
+            <div style={{fontSize:13,fontWeight:800,color:C.navy,letterSpacing:"-0.02em",lineHeight:1.2}}>{appName}</div>
+            <div style={{fontSize:9,color:C.textMuted,fontWeight:500}}>Metric · kg · L · °C · mL · cm</div>
+          </div>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:7}}>
-          <div style={{background:C.greenLight,borderRadius:20,padding:"3px 9px",color:C.green,fontSize:10,fontWeight:700}}>● Live</div>
-          <div style={{width:30,height:30,borderRadius:9,background:C.blueLight,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:C.blue,fontFamily:F}}>{user.avatar}</div>
+          <div style={{display:"flex",alignItems:"center",gap:4,background:C.greenLight,borderRadius:20,padding:"3px 9px",border:`1px solid ${C.green}30`}}>
+            <Icon name="live" size={9} color={C.green} strokeWidth={2.5}/>
+            <span style={{color:C.green,fontSize:10,fontWeight:700,fontFamily:F}}>Live</span>
+          </div>
+          <div style={{width:32,height:32,borderRadius:9,background:C.blueLight,border:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:C.blue,fontFamily:F}}>{user.avatar}</div>
         </div>
       </div>
       <div style={{flex:1,padding:"16px 13px 105px",overflowY:"auto"}}>{render()}</div>
-      <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,background:"rgba(255,255,255,0.95)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderTop:`1px solid ${C.border}`,zIndex:100}}>
-        <div ref={tabRef} style={{display:"flex",overflowX:"auto",padding:"4px 2px 8px",scrollbarWidth:"none",msOverflowStyle:"none"}}>
+      {/* Bottom nav */}
+      <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,background:"rgba(255,255,255,0.88)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderTop:"1px solid rgba(0,0,0,0.07)",zIndex:100,boxShadow:"0 -4px 20px rgba(0,0,0,0.06)"}}>
+        <div ref={tabRef} style={{display:"flex",overflowX:"auto",padding:"6px 4px 8px",scrollbarWidth:"none",msOverflowStyle:"none"}}>
           <style>{`div::-webkit-scrollbar{display:none}`}</style>
           {NAV.map(t=>(
             <button key={t.id} data-tab={t.id} onClick={()=>setActive(t.id)}
-              style={{flex:"0 0 auto",minWidth:58,padding:"7px 4px 1px",border:"none",background:"transparent",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
-              <div style={{width:40,height:30,borderRadius:10,background:active===t.id?C.blueLight:"transparent",display:"flex",alignItems:"center",justifyContent:"center",transition:"background 0.2s"}}>
-                <span style={{fontSize:17,filter:active===t.id?"none":"grayscale(100%) opacity(40%)"}}>{t.icon}</span>
+              style={{flex:"0 0 auto",minWidth:58,padding:"4px 4px 2px",border:"none",background:"transparent",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
+              <div style={{width:40,height:30,borderRadius:10,background:active===t.id?C.blueLight:"transparent",display:"flex",alignItems:"center",justifyContent:"center",transition:"background 0.18s"}}>
+                <Icon name={t.icon} size={17} color={active===t.id?C.blue:C.textMuted} strokeWidth={active===t.id?2.2:1.6}/>
               </div>
               <span style={{fontSize:9,fontWeight:active===t.id?700:400,color:active===t.id?C.blue:C.textMuted,fontFamily:F,whiteSpace:"nowrap"}}>{t.label}</span>
             </button>
